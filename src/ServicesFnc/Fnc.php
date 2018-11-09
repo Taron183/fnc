@@ -15,10 +15,7 @@ class Fnc extends FncAbstract
     protected static $QA_TOKEN_URL = 'https://uat.appraisalport.com/token';
 
 
-    public function __construct()
-    {
-        $this->client = new Client();
-    }
+
 
 
     /**
@@ -29,20 +26,7 @@ class Fnc extends FncAbstract
      */
     public static function login($username, $password, $grantType = 'password')
     {
-        $response = $this->client->post(
-            self::$QA_TOKEN_URL,
-            array(
-                'form_params' => array(
-                    'username' => $username,
-                    'password' => $password,
-                    'grant_type' => $grantType
-                )
-            )
-        );
-
-        $contents = $response->getBody()->getContents();
-        $data = json_decode($contents);
-        return $data->access_token;
+        return $this->loginCall($username, $password, $grantType);
     }
 
 
