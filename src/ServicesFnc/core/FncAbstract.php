@@ -19,15 +19,18 @@ abstract class FncAbstract
      */
     protected  static  function loginCall($username, $password, $grantType)
     {
-        $params = array(
-            'form_params' => array(
-                'username' => $username,
-                'password' => $password,
-                'grant_type' => $grantType
+        $client = new Client();
+        $response = $client->post(
+            self::$QA_TOKEN_URL,
+            array(
+                'form_params' => array(
+                    'username' => $username,
+                    'password' => $password,
+                    'grant_type' => $grantType
+                )
             )
         );
 
-        $response = self::call('POST', self::$QA_TOKEN_URL, $params);
         $contents = $response->getBody()->getContents();
         $data = json_decode($contents);
         return $data->access_token;
@@ -42,8 +45,16 @@ abstract class FncAbstract
      */
     protected static function callFileRequest($accessToken, $orderId)
     {
-        $headers = self::headers($accessToken);
-        $response = self::call('GET', self::$QA_API_URL.'orders/'.$orderId.'/files', 'null', $headers);
+
+        $headers = [
+            'Authorization' => 'Bearer ' . $accessToken,
+            'Accept'        => 'application/json',
+        ];
+        $client = new Client();
+        $response = $client->request('GET', self::$QA_API_URL.'orders/'.$orderId.'/files', [
+            'headers' => $headers
+        ]);
+
         $fileRequestResponse = $response->getBody()->getContents();
         return $fileRequestResponse;
     }
@@ -56,8 +67,15 @@ abstract class FncAbstract
      */
     public static function callSnapshotRequest($accessToken, $orderId)
     {
-        $headers = self::headers($accessToken);
-        $response = self::call('GET', self::$QA_API_URL.'orders/'.$orderId.'/propertyDataSnapshot', 'null', $headers);
+        $headers = [
+            'Authorization' => 'Bearer ' . $accessToken,
+            'Accept'        => 'application/json',
+        ];
+        $client = new Client();
+        $response = $client->request('GET', self::$QA_API_URL.'orders/'.$orderId.'/propertyDataSnapshot', [
+            'headers' => $headers
+        ]);
+
         $content = $response->getBody()->getContents();
         $string = json_decode($content);
         $xml = simplexml_load_string($string);
@@ -70,8 +88,15 @@ abstract class FncAbstract
 
     public static function callOnHoldStatus($accessToken, $serviceProviderId, $orderId, $reasonCode)
     {
-        $headers = self::headers($accessToken);
-        $response = self::call('GET', self::$QA_API_URL.'serviceproviders/'.$serviceProviderId.'/orders/'.$orderId.'/onHold/'.$reasonCode, 'null', $headers);
+        $headers = [
+            'Authorization' => 'Bearer ' . $accessToken,
+            'Accept'        => 'application/json',
+        ];
+        $client = new Client();
+        $response = $client->request('GET', self::$QA_API_URL.'serviceproviders/'.$serviceProviderId.'/orders/'.$orderId.'/onHold/'.$reasonCode, [
+            'headers' => $headers
+        ]);
+
         $content = $response->getBody()->getContents();
         return $content;
     }
@@ -86,8 +111,15 @@ abstract class FncAbstract
      */
     public static function 	callOffHoldStatus($accessToken, $serviceProviderId, $orderId)
     {
-        $headers = self::headers($accessToken);
-        $response = self::call('GET', self::$QA_API_URL.'serviceproviders/'.$serviceProviderId.'/orders/'.$orderId.'/offHold', 'null', $headers);
+        $headers = [
+            'Authorization' => 'Bearer ' . $accessToken,
+            'Accept'        => 'application/json',
+        ];
+        $client = new Client();
+        $response = $client->request('GET', self::$QA_API_URL.'serviceproviders/'.$serviceProviderId.'/orders/'.$orderId.'/offHold', [
+            'headers' => $headers
+        ]);
+
         $content = $response->getBody()->getContents();
         return $content;
     }
@@ -108,11 +140,16 @@ abstract class FncAbstract
             'Authorization' => 'Bearer ' . $accessToken,
             'Content-Type'        => 'application/x-www-form-urlencoded',
         ];
-        $params = [
+
+        $formParams = [
             'Comments' => $comment,
             'CommittedDate' => $committedDate,
         ];
-        $response = self::call('POST', self::$QA_API_URL.'serviceproviders/'.$serviceProviderId.'/orders/'.$orderId.'/reportPastDue', $params, $headers);
+        $client = new Client();
+        $response = $client->request('POST', self::$QA_API_URL.'serviceproviders/'.$serviceProviderId.'/orders/'.$orderId.'/reportPastDue', [
+            'headers' => $headers,
+            'form_params' => $formParams
+        ]);
         $content = $response->getBody()->getContents();
         return $content;
     }
@@ -129,7 +166,11 @@ abstract class FncAbstract
             'Authorization' => 'Bearer ' . $accessToken,
             'Content-Type'        => 'application/x-www-form-urlencoded',
         ];
-        $response = self::call('GET', self::$QA_API_URL.'orders/'.$orderId.'/egl', 'null', $headers);
+        $client = new Client();
+        $response = $client->request('GET', self::$QA_API_URL.'orders/'.$orderId.'/egl', [
+            'headers' => $headers
+        ]);
+
         $content = $response->getBody()->getContents();
         $data = json_decode($content);
         return $data;
@@ -149,50 +190,15 @@ abstract class FncAbstract
             'Authorization' => 'Bearer ' . $accessToken,
             'Content-Type'        => 'application/x-www-form-urlencoded',
         ];
-        $response = self::call('GET', self::$QA_API_URL.'orders/'.$orderId.'/EngagementLetter/Pdf', 'null', $headers);
+
+        $client = new Client();
+        $response = $client->request('GET', self::$QA_API_URL.'orders/'.$orderId.'/EngagementLetter/Pdf', [
+            'headers' => $headers
+        ]);
         $content = $response->getBody()->getContents();
         return $content;
-	}
-
-
-
-
-    /**
-     * @param $method
-     * @param $url
-     * @param array $params
-     * @return string
-     */
-    protected static function call($method, $url,  $params=null, $headers=null)
-    {
-        try {
-            $client = new Client();
-            if(isset($headers) && isset($headers)) {
-                $result = $client->$method($url,  ['headers' => $headers, 'form_params' => $params]);
-            }elseif(isset($headers)) {
-                $result = $client->$method($url,  $headers);
-            } elseif(isset($params)) {
-                $result = $client->$method($url, $params);
-            }
-            return $result;
-        } catch (\Throwable $e) {
-            return $e->getMessage();
-        }
     }
 
 
-    /**
-     * @param $accessToken
-     * @return array
-     */
-    protected static function headers($accessToken)
-    {
-        return [
-            'headers' => [
-                'Authorization' => 'Bearer ' . $accessToken,
-                'Accept' => 'application/json',
-            ]
-        ];
-    }
 
 }
