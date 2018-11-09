@@ -1,9 +1,16 @@
-# Real View PDS service#
+#Fnc  service:
 
-### Installation ###
+## Installation
 
-#### 1.Install via Composer ####
+Installation is straightforward, setup is similar to every other  Package.
 
-### How do I get set up? ###
+#### 1. Install via Composer
+Begin by pulling in the package through Composer:
 
+```
 composer require servicesfnc/fnc
+```
+
+
+
+
